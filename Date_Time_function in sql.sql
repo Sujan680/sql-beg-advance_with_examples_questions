@@ -112,3 +112,80 @@ FROM
 	Sales.Orders
 WHERE
 	MONTH(OrderDate) = 2;
+
+--- ###Format and Casting:
+-- FORMAT(value, format, [,culture])
+-- To extract the day by formating 
+SELECT
+	OrderID,
+	CreationTime,
+	FORMAT(CreationTime, 'MM-dd-yyyy') as Us_format,
+	FORMAT(CreationTime, 'dd') dd,
+	FORMAT(CreationTime, 'ddd') dd,
+	FORMAT(CreationTime, 'dddd') dd
+FROM
+	Sales.Orders;
+-- To format the month
+SELECT
+	OrderID,
+	CreationTime,
+	FORMAT(CreationTime, 'MM') month_num,
+	FORMAT(CreationTime, 'MMM') half_mon,
+	FORMAT(CreationTime, 'MMMM') full_month
+FROM
+	Sales.Orders;
+
+
+--- Day Wed Jan Q1 2025 12:34:56 PM
+SELECT
+	CreationTime,
+	'Day ' + Format(CreationTime, 'ddd MMM') +
+	 ' Q' + DATENAME(quarter, CreationTime) +
+	 FORMAT(CreationTime, ' yyyy hh:mm:ss tt') as Custom_format
+FROM
+	Sales.Orders;
+
+-- E.g 
+SELECT
+	FORMAT(OrderDate, 'MMM yy'),
+	COUNT(*) as number_of_orders
+FROM
+	Sales.Orders
+GROUP BY
+	FORMAT(OrderDate, 'MMM yy');
+
+-- Standarize the date format
+
+
+-- #####  CONVERT():
+-- Converts a date or time value to a different data type and format the value.
+
+-- CONVERT(data_type, value, [,style])
+
+-- CONVERT(int, '123')
+-- CONVERT(VARCHAR, OrderDate, '34')
+
+
+SELECT
+	CONVERT(INT, '123') as [String to Int Convert],
+	CONVERT(DATE, '2025-04-01') as [String to DATE Convert],
+	CreationTime,
+	CONVERT(DATE, CreationTime) as [DateTime to Date Convert]
+FROM
+	Sales.Orders;
+
+
+--- CAST(value AS data_type) function
+-- CAST('123' AS INT)
+-- CAST('2023-03-12' AS DATE)
+
+SELECT
+	CAST('123' AS INT) as [String to Int],
+	CAST(123 AS varchar) as [Int to string],
+	CAST('2021-12-3' AS DATE) as [String to Date];
+
+SELECT
+	CreationTime,
+	CAST(CreationTIme as Date) as Date
+FROM	
+	Sales.Orders;
