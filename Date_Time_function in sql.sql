@@ -247,3 +247,8 @@ SELECT
 	DATEDIFF(day, LAG(OrderDate) OVER(ORDER BY OrderDate), OrderDate) as number_of_days
 FROM
 	Sales.Orders;
+
+-- Validations: ISDATE(): Checks if a value is date or not.
+-- Returns  1 if the string value is a valid date
+
+SELECT ISDATE('123') as DateCheck;
