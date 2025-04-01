@@ -189,3 +189,61 @@ SELECT
 	CAST(CreationTIme as Date) as Date
 FROM	
 	Sales.Orders;
+
+
+-- Date Calculations:
+-- DATEADD() and DATEDIFF()
+
+--- DATEADD() : Allow adds or subtracts a specific time interval to/from a date.
+-- DATEADD(part, interval, data)
+-- DATEADD(year, 3, OrderDate)
+-- DATEADD(month, -4, OrderDate)
+
+SELECT
+	OrderID,
+	OrderDate,
+	DATEADD(year, 2, OrderDate) as add_year,
+	DATEADD(month, 2, OrderDate) as add_month,
+	DATEADD(day, -10, OrderDate) as minus_day
+FROM	
+	Sales.Orders;
+
+
+-- DATEDIFF() functions in sql
+-- DATEDIFF(part, start_date, end_date)
+
+SELECT
+*
+FROM
+	Sales.Employees;
+
+-- Get the age of the employees
+SELECT 
+	firstName,
+	Department,
+	BirthDate,
+	DATEDIFF(year,BirthDate,GETDATE()) as age
+FROM
+	Sales.Employees;
+
+-- Find the average shipping duration in days for each month
+
+SELECT
+	MONTH(OrderDate) each_month,
+	AVG(DATEDIFF(day,OrderDate, ShipDate)) as ship_days
+FROM
+	Sales.Orders
+GROUP BY
+	MONTH(OrderDate);
+
+
+-- Time Gap Analysis
+-- Find the number of days betweeen each orders and the previous order
+
+SELECT
+	OrderID,
+	OrderDate as CurrentOrderDate,
+	LAG(OrderDate) OVER(ORDER BY OrderDate) as PrevOrderDate,
+	DATEDIFF(day, LAG(OrderDate) OVER(ORDER BY OrderDate), OrderDate) as number_of_days
+FROM
+	Sales.Orders;
