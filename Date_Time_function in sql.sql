@@ -121,8 +121,8 @@ SELECT
 	CreationTime,
 	FORMAT(CreationTime, 'MM-dd-yyyy') as Us_format,
 	FORMAT(CreationTime, 'dd') dd,
-	FORMAT(CreationTime, 'ddd') dd,
-	FORMAT(CreationTime, 'dddd') dd
+	FORMAT(CreationTime, 'ddd') ddd,
+	FORMAT(CreationTime, 'dddd') dddd
 FROM
 	Sales.Orders;
 -- To format the month
