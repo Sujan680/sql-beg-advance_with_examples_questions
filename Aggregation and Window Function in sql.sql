@@ -106,3 +106,79 @@ GROUP BY
 
 	*/
 
+	--- #####  OVER() as OVER(Partition By col)
+	-- Find the total sales across all orders
+	-- additiionally provides details such as order id, order data
+
+	SELECT
+		OrderID,
+		OrderDate,
+		SUM(Sales) OVER() total_sales
+		FROM
+			Sales.Orders;
+
+	-- Find the total sales for each product
+	-- additiionally provides details such as order id, order data
+
+	SELECT
+		OrderID,
+		OrderDate,
+		ProductID,
+		OrderStatus,
+		SUM(Sales) OVER(PARTITION BY ProductID) as total_sales_by_product,
+		SUM(Sales) OVER(PARTITION BY ProductID, OrderStatus) as total_sales_by_product_OrderStatus
+		FROM
+			Sales.Orders;
+
+	-- Rank each order based on their sales from highest to lowest.
+	SELECT
+		ProductID,
+		OrderID,
+		Sales,
+		RANK() OVER(ORDER BY Sales DESC) as rank_sales
+	FROM
+		Sales.Orders;
+
+
+	-- WINDOW FRAME: Defines a subset of rows within each window that is relevant for the calculation
+	SELECT
+		
+		OrderID,
+		OrderDate,
+		OrderStatus,
+		Sales,
+		SUM(Sales) OVER (PARTITION BY OrderStatus ORDER BY OrderDate
+		ROWS BETWEEN CURRENT ROW AND 2 FOLLOWING) TotalSales
+	FROM
+		Sales.Orders;
+
+
+--- Rules for Window Functions
+--1. Window functions can be used only in SELECT and ORDER BY Clause (Can't be used to filter data)
+--2. Nesting Window Function is not allowed
+--3. SQL execute Window functions after WHERE Clause.
+
+---E.g., Find the total Sales for each order status, only for two products 101 and 102
+	
+	SELECT
+		OrderID,
+		OrderDate,
+		OrderStatus,
+		Sales,
+		SUM(Sales) OVER (PARTITION BY OrderStatus) TotalSales
+	FROM
+		Sales.Orders
+	WHERE ProductID IN (101,102);
+
+--4. WInodw Functions cab be used together with GROUP BY in the same query, ONLY if the same columns are used
+	
+	-- Rank the customers based on their total sales.
+
+	SELECT
+		CustomerID,
+		SUM(Sales) TotalSales,
+		RANK() OVER(ORDER BY SUM(Sales) DESC) Rank_customers
+	FROM
+		Sales.Orders
+	GROUP BY 
+		CustomerID;
