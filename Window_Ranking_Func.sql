@@ -134,3 +134,70 @@
 	--3. Assign Unique IDs
 	--4. Quality Checks: IDentify Duplicates
 
+
+	---### Rank WIndow Function::
+							--4. NTILE ----
+			-- Divides the rows into a specified number of approximately equal groups.
+			-- Bucket size = Number of Rows / Number of Buckes;
+
+		SELECT
+			OrderID,
+			Sales,
+			NTILE(1) OVER(ORDER BY Sales DESC) OneBucket,
+			NTILE(2) OVER(ORDER BY Sales DESC) TwoBucket,
+			NTILE(3) OVER(ORDER BY Sales DESC) ThreeBucket,
+			NTILE(4) OVER(ORDER BY Sales DESC) FourBucket,
+			NTILE(5) OVER(ORDER BY Sales DESC) FiveBucket
+		FROM
+			Sales.Orders;
+
+	-- NTILE(n) USE CASE::
+	-- Data Segmentation: Divides a dataset into distinct subsets based on certain criteria
+
+	-- Segment all orders into 3 categories: high, medium, and low sales:?
+		
+		SELECT 
+			*,
+			CASE
+				WHEN Buckets = 1 THEN 'High'
+				WHEN Buckets  = 2 THEN 'Medium'
+				Else 'Low'
+			END Category
+		FROM (
+		SELECT
+			OrderID,
+			Sales,
+			NTILE(3) OVER(ORDER BY Sales DESC) Buckets
+		FROM
+			Sales.Orders) t;
+
+		-- In order to export the data, divide the orders into 2 groups.
+
+		SELECT
+			NTILE(2) OVER(ORDER BY OrderID) Buckest,
+			*
+		FROM
+			Sales.Orders;
+
+	--- 5. PERCENTAGE-BASED RANKING: CUME_DIST() and PERCENT_RANK()
+
+	--- CUME_DIST = Position Nmbr / Nuber of Rows
+
+	-- PERCENT_RANK = Position Nmbr - 1 / Number of Rows -1
+
+	-- Find the products that fall within the highest 40% of the prices. ?
+
+	SELECT *,
+		CONCAT(DistRank * 100, '%') DistRankPert
+	FROM (
+	SELECT
+		Product,
+		Price,
+		CUME_DIST() OVER(ORDER BY Price DESC) DistRank,
+		PERCENT_RANK() OVER(ORDER BY Price DESC) PerctRank
+	FROM
+		Sales.Products
+	 ) t
+	 WHERE
+		DistRank <= 0.4;
+
