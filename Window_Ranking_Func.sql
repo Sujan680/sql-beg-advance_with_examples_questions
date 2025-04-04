@@ -32,7 +32,7 @@
 			-Formula: (number of rows ≤ current row) / (total rows)
 			-Useful for understanding value distribution
 */
-
+--##################################################################################################
 	--1. ROW_NUMBER(): Unique rank
 
 	SELECT 
@@ -42,6 +42,7 @@
 		ROW_NUMBER() OVER(ORDER BY Sales) SalesRank_Row
 	FROM
 		Sales.Orders;
+--##################################################################################################
 
 	-- 2. RANK(): it handles ties and leaves a gap in ranking
 
@@ -54,6 +55,7 @@
 		FROM
 			Sales.Orders;
 
+--##################################################################################################
 
 	--3. DENSE_RANK(): It also handles ties but doesnot leaves a gap while ranking
 
@@ -66,11 +68,12 @@
 			DENSE_RANK() OVER(ORDER BY Sales) SalesRankByDense_rank
 		FROM
 			Sales.Orders;
+--##################################################################################################
 
 		-- #### TOP_N Analysis::  ###
 
 		-- FInd the top highest sales for each product
-
+--##################################################################################################
 		SELECT
 		*
 		FROM
@@ -85,11 +88,11 @@
 		) as ranking
 		WHERE Rank_By_Product = 1;
 
-
+--##################################################################################################
 		-- ## BOTTOM-N analysis:  ###
 
 	-- Find the lowest 2 customers based on their total sales
-		
+--##################################################################################################		
 		SELECT *
 		FROM (
 		SELECT
@@ -104,7 +107,7 @@
 		WHERE 
 			RankCustomers <= 2;
 
-
+--##################################################################################################
 	-- Give the unique row numbr to the OrderArchieve tables
 	SELECT
 		ROW_NUMBER() OVER(ORDER BY OrderID, OrderDate) UniqueID,
@@ -127,19 +130,19 @@
 			) t
 		WHERE 
 			rn = 1;
-
+--##################################################################################################
 	-- ROW_NUMBER() USE CASE::
 	--1. TOP-N Analysis
 	--2. BOTTOM-N Analysis
 	--3. Assign Unique IDs
 	--4. Quality Checks: IDentify Duplicates
-
+--##################################################################################################
 
 	---### Rank WIndow Function::
 							--4. NTILE ----
 			-- Divides the rows into a specified number of approximately equal groups.
 			-- Bucket size = Number of Rows / Number of Buckes;
-
+--##################################################################################################
 		SELECT
 			OrderID,
 			Sales,
@@ -150,6 +153,8 @@
 			NTILE(5) OVER(ORDER BY Sales DESC) FiveBucket
 		FROM
 			Sales.Orders;
+
+--##################################################################################################
 
 	-- NTILE(n) USE CASE::
 	-- Data Segmentation: Divides a dataset into distinct subsets based on certain criteria
@@ -172,12 +177,15 @@
 			Sales.Orders) t;
 
 		-- In order to export the data, divide the orders into 2 groups.
+--##################################################################################################
 
 		SELECT
 			NTILE(2) OVER(ORDER BY OrderID) Buckest,
 			*
 		FROM
 			Sales.Orders;
+
+--##################################################################################################
 
 	--- 5. PERCENTAGE-BASED RANKING: CUME_DIST() and PERCENT_RANK()
 
@@ -201,3 +209,77 @@
 	 WHERE
 		DistRank <= 0.4;
 
+--##################################################################################################
+
+	------ Window Value Functions: LAG() , LEAD(), FIRST_VALUE(), LAST_VALUE()
+
+		-- LEAD(exp, offset(opti.),default value) OVER(PARTITION BY ProductID ORDER BY OrderDate)
+		-- Case Analysis::
+		-- Time series analysis:
+		-- The Process of analyzing the data to understand patterns, trends and behaviour over time
+--##############################################################################################
+		--1. Analyze the month-over-month performanace by finding the percentage change in sales
+		-- between the current and prev months.
+			
+			SELECT
+				*,
+				CurrentMonthSales - PrevMonthSales As Month_Change,
+				ROUND(CAST((CurrentMonthSales - PrevMonthSales) AS FLOAT) / PrevMonthSales * 100, 2) MoM_perc
+			FROM (
+			SELECT 
+				MONTH(OrderDate) OrderMonth,
+				SUM(Sales) CurrentMonthSales,
+				LAG(SUM(Sales)) OVER(ORDER BY MONTH(OrderDate)) PrevMonthSales
+			FROM
+				Sales.Orders
+			GROUP BY
+				MONTH(OrderDate) ) t;
+
+--####################################################################################################
+	--- Customer Retention Analysis:;
+	-- Measure customer's behavior and loyalty to help businesses build strong relationship with customers.
+
+	--#################################################################################
+	--qsn: Analyze customer loyalty,
+		-- by ranking customers based on the average numbr of days between orders.
+
+		SELECT
+			CustomerID,
+			AVG(DaysUntilNextOrder) AvgDays,
+			RANK() OVER(ORDER BY COALESCE(AVG(DaysUntilNextOrder), 9999)) Ranking
+		FROM (
+		SELECT
+			OrderID,
+			CustomerID,
+			OrderDate CurrentOrder,
+			LEAD(OrderDate) OVER(PARTITION BY CustomerID ORDER BY OrderDate) NextOrder,
+			DATEDIFF(day, OrderDate,LEAD(OrderDate) OVER(PARTITION BY CustomerID ORDER BY OrderDate)) DaysUntilNextOrder 
+		FROM
+			Sales.Orders) t 
+		GROUP BY 
+			CustomerID;
+
+--#########################################################################################
+		--- FIRST_VALUE(): Access a value from the first row within a window
+		-- FIRST_VALUE(Sales) OVER(ORDER BY OrderDate ROWS BETWEEN UNBOUND PRECEDING AND CURRENT ROW)
+
+		-- LAST_VALUE(): Access a value from the last row within a window
+		--LAST_VALUE(Sales) OVER(ORDER BY OrderDate ROWS BETWEEN  CURRENT ROW AND UNBOUND FOLLOWING)
+
+--##################################################################################################
+	-- qsn: FInd the lowest and highest sales for each product::::
+
+	SELECT
+		OrderID,
+		ProductID,
+		Sales,
+		FIRST_VALUE(Sales) OVER(PARTITION BY ProductID ORDER BY Sales) lowestSales,
+		LAST_VALUE(Sales) OVER(PARTITION BY ProductID ORDER BY Sales
+		ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) highestSales,
+		FIRST_VALUE(Sales) OVER(PARTITION BY ProductID ORDER BY Sales DESC) HighestSales,
+		MAX(Sales) OVER(Partition By ProductID) as HighestSales,
+		MIN(Sales) OVER(Partition By ProductID) as LowestSales
+	FROM
+		Sales.Orders;
+
+--##################################################################################################
