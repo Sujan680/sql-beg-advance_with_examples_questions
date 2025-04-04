@@ -182,3 +182,209 @@ GROUP BY
 		Sales.Orders
 	GROUP BY 
 		CustomerID;
+
+
+	----##### AGGREGATE WINDOW FUNCTION ?
+
+	SELECT
+		OrderID,
+		OrderDate,
+		OrderStatus,
+		Sales,
+		COUNT(*) OVER() TotalOrders,
+		COUNT(*) OVER(PARTITION BY CustomerID) TotalOrders,
+		COUNT(Sales) OVER (PARTITION BY ProductID) TotalSales
+	FROM
+		Sales.Orders;
+
+	-- FInd the total number of customers
+	-- Find the total number of scores for the custoemrs
+	-- Additionally provide all custoemrs details
+
+	SELECT
+		*,
+		COUNT(*) OVER() as total_customers,
+		COUNT(Score) OVER() as total_score,
+		COUNT(LastName) OVER() as total_lname
+	FROM
+		Sales.Customers;
+
+
+	-- Check whether the table 'Orders' contains any duplicate rows
+	SELECT
+		OrderID,
+		COUNT(*) OVER(PARTITION BY OrderID) check_duplicate
+	FROM
+		Sales.Orders;
+
+	--2.  idenfiying the duplicate rows to improve data quality
+	SELECT
+		*
+	FROM(
+	SELECT 
+		OrderID,
+		COUNT(*) OVER(PARTITION BY OrderID) chek_duplicate
+	FROM
+		Sales.OrdersArchive) t
+		WHERE chek_duplicate > 1;
+
+
+	--- SUM() aggregate window functions
+
+	-- find the total sales for each product
+	SELECT
+		ProductID,
+		Sales,
+		SUM(Sales) OVER() TotalSales,
+		SUM(Sales) OVER(PARTITION BY ProductID) as total_Sales_by_product
+	FROM
+		Sales.Orders;
+
+
+	-- AVG() :
+	-- find the average ssales across all orders
+	-- find the average for each product
+	-- additionally provide details such orderid, orderdate
+	SELECT
+		ProductID,
+		Sales,
+		OrderDate,
+		AVG(Sales) OVER() AvgSales,
+		AVG(Sales) OVER(PARTITION BY ProductID) as avg_sales_by_product
+	FROM
+		Sales.Orders;
+
+	-- Find the average scores of custoemrs
+	-- additionally provide deetails such CustomerID and LastName
+
+	SELECT 
+		CustomerID,
+		LastName,
+		Score,
+		COALESCE(Score,0) as new_score,
+		AVG(COALESCE(Score,0)) OVER () avg_score
+	FROM
+		Sales.Customers;
+
+	-- Find all orders where sales are higher than the average sales across all orders
+	SELECT
+		*
+	FROM(
+	SELECT
+		ProductID,
+		OrderDate,
+		Sales,
+		AVG(Sales) OVER() AvgSales
+	FROM
+		Sales.Orders
+	) t
+	WHERE 
+		Sales > AvgSales;
+
+	-- note: Helps to evaluate whether a value is above or below the average
+
+	---#### MIN/MAX window functions
+	-- Find the highest and the lowest sales of all orders
+	-- Find the highest and lowest sales for each product
+	SELECT
+		ProductID,
+		OrderDate,
+		Sales,
+		MAX(Sales) OVER() Max_sales,
+		MAX(Sales) OVER(PARTITION BY ProductID) Max_Sales_by_product,
+		MIN(Sales) OVER() Min_sales,
+		MIN(Sales) OVER(PARTITION BY ProductID) Min_Sales_by_product
+	FROM
+		Sales.Orders;
+
+	--NOTE: Group-wise analysis, to understand patterns within different categories
+
+	-- Show the employees with the highest salaries
+	SELECT
+		*
+	FROM (
+	SELECT
+		FirstName,
+		LastName,
+		Department,
+		Salary,
+		MAX(Salary) OVER() highest_salary
+	FROM
+		Sales.Employees) t
+	WHERE
+		Salary = highest_salary;
+
+
+	-- Find the deviation of each sales from the min and max sales amount
+	SELECT
+		ProductID,
+		OrderDate,
+		Sales,
+		MAX(Sales) OVER() Max_sales,
+		MIN(Sales) OVER() Min_sales,
+		MAX(Sales) OVER() - Sales DeviationfromMax,
+		Sales - MIN(Sales) OVER() DeviationFromMin
+	FROM
+		Sales.Orders;
+
+
+	-- Running and Rolling Total 
+	-- Tracking current sales with target sales
+
+	-- # RUNNING TOTAL:
+	-- Aggeragate all values from the beginning to the current point without droppping off older data.
+
+	-- # ROLLING TOTAL:
+	-- Aggeragate all values within a fixed time window (e.g. 30days). As new data is added, the oldest point
+	--- will be dropped.
+
+	-- Calculate the running total of sales for each product over time, also the rolling total for each product
+		SELECT
+			ProductID,
+			OrderDate,
+			Sales,
+			SUM(Sales) OVER(PARTITION BY ProductID) TotalSales,
+			SUM(Sales) OVER(PARTITION BY ProductID ORDER BY OrderDate) RunningTotalSales,
+			SUM(Sales) OVER(PARTITION BY ProductID ORDER BY OrderDate 
+			ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) RollingTotalSales
+		FROM
+		Sales.Orders;
+
+
+	-- Calculate the moving average of sales for each product over time
+		SELECT
+			ProductID,
+			OrderDate,
+			Sales,
+			AVG(Sales) OVER(PARTITION BY ProductID) AvgProduct,
+			AVG(Sales) OVER(PARTITION BY ProductID ORDER BY OrderDate) MovingAvg
+		FROM
+		Sales.Orders;
+
+		-- Calculate the moving average of sales for each product over time
+		-- Calculate the moving  average for each product over time , including only next order
+		SELECT
+			ProductID,
+			OrderDate,
+			Sales,
+			AVG(Sales) OVER(PARTITION BY ProductID) AvgProduct,
+			AVG(Sales) OVER(PARTITION BY ProductID ORDER BY OrderDate) MovingAvg,
+			AVG(Sales) OVER(PARTITION BY ProductID ORDER BY OrderDate
+			ROWS BETWEEN CURRENT ROW AND 1 FOLLOWING) Rolling_Avg
+		FROM
+		Sales.Orders;
+
+
+	-- SUMMARY:
+		
+		SELECT
+			ProductID,
+			OrderDate,
+			Sales,
+			SUM(Sales) OVER() OverallTotal,
+			SUM(Sales) OVER(PARTITION BY ProductID) TotalSalesByProduct,
+			SUM(Sales) OVER(PARTITION BY ProductID ORDER BY OrderDate) RunningTotalSales,
+			SUM(Sales) OVER(PARTITION BY ProductID ORDER BY OrderDate 
+			ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) RollingTotalSales
+		FROM
+		Sales.Orders;
