@@ -375,7 +375,7 @@ GROUP BY
 		Sales.Orders;
 
 
-	-- SUMMARY:
+	-- SUMMARY: Overall TOtal, Total by group
 		
 		SELECT
 			ProductID,

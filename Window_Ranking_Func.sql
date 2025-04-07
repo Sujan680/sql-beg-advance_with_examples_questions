@@ -34,6 +34,7 @@
 */
 --##################################################################################################
 	--1. ROW_NUMBER(): Unique rank
+	-- e.g: Assign seat numbers to passengers in order of booking
 
 	SELECT 
 		OrderID,
@@ -45,6 +46,7 @@
 --##################################################################################################
 
 	-- 2. RANK(): it handles ties and leaves a gap in ranking
+	-- e.g: Olympic medals: two golds (rank=1), next is bronze (rank=3)
 
 		SELECT 
 			OrderID,
@@ -58,7 +60,7 @@
 --##################################################################################################
 
 	--3. DENSE_RANK(): It also handles ties but doesnot leaves a gap while ranking
-
+	-- e.g:Employee performance tiers: High, High, Medium, Medium, Low
 		SELECT 
 			OrderID,
 			ProductId,
@@ -114,6 +116,7 @@
 		*
 	FROM
 		Sales.OrdersArchive;
+--#################################################################################################3
 
 	-- USE CASE: IDentity Duplicates::
 	-- Identify the duplicate rows in the table "Orders Archive"
@@ -139,7 +142,7 @@
 --##################################################################################################
 
 	---### Rank WIndow Function::
-							--4. NTILE ----
+	--4. NTILE ----
 			-- Divides the rows into a specified number of approximately equal groups.
 			-- Bucket size = Number of Rows / Number of Buckes;
 --##################################################################################################
